@@ -1,6 +1,10 @@
-# ANTAVID
+# ANTAVID v0.21
 
 ANTAVID is an evidence-first market-intelligence research preview with a persistent paper-trading journal.
+
+## Interface direction
+
+Version 0.21 restores the identity and navigation model of the original v19 prototype: compact market terminal, scrolling ticker, dedicated Oil/Gold/Crypto/Food tabs, detailed signal panels, charts, RSI, analytical context, paper trading, journal and educational help. Polish is the default language and the PL/EN control switches the complete interface. Amateur/Pro mode is retained as a presentation preference.
 
 ## Current status
 

@@ -1,117 +1,61 @@
 <!doctype html>
-<html lang="en">
+<html lang="pl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080c14">
-  <meta name="description" content="ANTAVID research preview: evidence-first market intelligence and paper trading.">
+  <meta name="theme-color" content="#07101d">
+  <meta name="description" content="ANTAVID — analityczny terminal rynkowy i dziennik transakcji demonstracyjnych.">
   <title>ANTAVID — Market Intelligence</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to market overview</a>
-  <div class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#overview" aria-label="ANTAVID home">
-        <span class="brand-mark" aria-hidden="true">A</span>
-        <span><strong>ANTAVID</strong><small>MARKET INTELLIGENCE</small></span>
-      </a>
-      <div class="status-cluster">
-        <span class="mode-chip" id="modeChip">DEMO DATA</span>
-        <span class="connection" id="connection"><i></i><span>Checking</span></span>
-      </div>
-    </header>
-
-    <div class="integrity-banner" id="integrityBanner" role="status">
-      <strong>Research preview.</strong> Demo scenarios are not current prices or trading recommendations.
+  <a class="skip-link" href="#main" data-i18n="skip">Przejdź do analizy rynku</a>
+  <header class="app-header">
+    <div class="brand-lockup">
+      <div class="brand-shield" aria-hidden="true"><span>A</span></div>
+      <div><strong>ANTAVID</strong><small>MARKET INTELLIGENCE</small></div>
     </div>
-
-    <main id="main">
-      <section class="hero" id="overview">
-        <div>
-          <p class="eyebrow">Evidence-first workspace</p>
-          <h1>Market context without false certainty.</h1>
-          <p class="hero-copy">Verified inputs, explicit horizons and auditable signal records. When evidence is missing, ANTAVID says so.</p>
-        </div>
-        <div class="freshness-card">
-          <span>DATA SNAPSHOT</span>
-          <strong id="snapshotTime">—</strong>
-          <small id="snapshotSource">—</small>
-          <button id="refreshButton" type="button">Refresh data</button>
-        </div>
-      </section>
-
-      <nav class="primary-nav" aria-label="Application sections">
-        <button class="nav-button active" data-view="markets" type="button">Markets</button>
-        <button class="nav-button" data-view="journal" type="button">Paper journal</button>
-        <button class="nav-button" data-view="methodology" type="button">Methodology</button>
-      </nav>
-
-      <section class="view active" id="marketsView" aria-labelledby="marketsHeading">
-        <div class="section-heading">
-          <div><p class="eyebrow">Monitored universe</p><h2 id="marketsHeading">Market scenarios</h2></div>
-          <label class="search"><span class="sr-only">Filter instruments</span><input id="marketSearch" type="search" placeholder="Filter by symbol or market"></label>
-        </div>
-        <div class="market-grid" id="marketGrid" aria-live="polite"></div>
-      </section>
-
-      <section class="view" id="journalView" aria-labelledby="journalHeading">
-        <div class="section-heading">
-          <div><p class="eyebrow">Risk practice</p><h2 id="journalHeading">Paper trading journal</h2></div>
-          <button class="secondary-button" id="resetJournal" type="button">Reset journal</button>
-        </div>
-        <div class="portfolio-strip">
-          <div><span>Cash</span><strong id="cashValue">$10,000.00</strong></div>
-          <div><span>Open P&amp;L</span><strong id="openPnl">$0.00</strong></div>
-          <div><span>Realized P&amp;L</span><strong id="realizedPnl">$0.00</strong></div>
-          <div><span>Open risk</span><strong id="openRisk">0.00%</strong></div>
-        </div>
-        <div class="journal-list" id="journalList"></div>
-      </section>
-
-      <section class="view" id="methodologyView" aria-labelledby="methodologyHeading">
-        <div class="section-heading"><div><p class="eyebrow">Auditability</p><h2 id="methodologyHeading">How ANTAVID must earn trust</h2></div></div>
-        <div class="method-grid">
-          <article><b>1</b><h3>Verified inputs</h3><p>Every price, candle and event carries its source, timestamp, unit and freshness status.</p></article>
-          <article><b>2</b><h3>Deterministic features</h3><p>Indicators are computed from the displayed market series. No random or invented history.</p></article>
-          <article><b>3</b><h3>Frozen signals</h3><p>Each signal records its horizon, trigger, invalidation, model version and complete input snapshot.</p></article>
-          <article><b>4</b><h3>Out-of-sample proof</h3><p>Probability language is allowed only after walk-forward testing, cost modelling and calibration.</p></article>
-        </div>
-        <div class="disclosure">
-          <h3>Important disclosure</h3>
-          <p>ANTAVID is an analytical research preview. It does not provide personalized investment advice and does not execute orders. Demo scenarios exist only to test the interface and paper-trading workflow.</p>
-        </div>
-      </section>
-    </main>
+    <div class="header-actions">
+      <button id="experienceButton" class="experience" type="button">🌱 AMATOR</button>
+      <button id="languageButton" class="language" type="button" aria-label="Zmień język">PL</button>
+      <span class="data-state"><i></i><span data-i18n="demo">DANE DEMO</span></span>
+    </div>
+  </header>
+  <div class="ticker" aria-label="Notowania demonstracyjne"><div class="ticker-track" id="tickerTrack"></div></div>
+  <div class="integrity-bar" role="status">
+    <span>⚠</span><p><strong data-i18n="preview">WERSJA BADAWCZA</strong> — <span data-i18n="previewText">notowania i scenariusze są deterministycznymi danymi demonstracyjnymi, a nie bieżącymi cenami ani poradą inwestycyjną.</span></p>
   </div>
-
+  <main id="main" class="app-main">
+    <section class="search-row">
+      <div class="search-box"><span aria-hidden="true">⌕</span><label class="sr-only" for="marketSearch" data-i18n="searchLabel">Szukaj instrumentu</label><input id="marketSearch" type="search" placeholder="Szukaj instrumentu…" autocomplete="off"><button id="clearSearch" type="button" aria-label="Wyczyść">×</button></div>
+      <div class="snapshot"><span data-i18n="snapshot">MIGAWKA DANYCH</span><strong id="snapshotTime">—</strong></div>
+    </section>
+    <nav class="market-tabs" id="marketTabs" aria-label="Rynki"></nav>
+    <section id="marketView" class="view active" aria-live="polite"></section>
+    <section id="journalView" class="view" aria-labelledby="journalTitle">
+      <div class="section-title-row"><div><span class="kicker" data-i18n="riskPractice">TRENING ZARZĄDZANIA RYZYKIEM</span><h1 id="journalTitle" data-i18n="journal">Dziennik transakcji</h1></div><button id="resetJournal" class="ghost-button" type="button" data-i18n="reset">Wyczyść dziennik</button></div>
+      <div class="portfolio-strip">
+        <article><span data-i18n="cash">Kapitał</span><strong id="cashValue">$10,000.00</strong></article><article><span data-i18n="openPnl">Otwarty P&amp;L</span><strong id="openPnl">$0.00</strong></article><article><span data-i18n="realizedPnl">Zrealizowany P&amp;L</span><strong id="realizedPnl">$0.00</strong></article><article><span data-i18n="openRisk">Otwarte ryzyko</span><strong id="openRisk">0.00%</strong></article>
+      </div>
+      <div id="journalList" class="journal-list"></div>
+    </section>
+    <section id="helpView" class="view" aria-labelledby="helpTitle">
+      <span class="kicker" data-i18n="education">EDUKACJA I METODOLOGIA</span><h1 id="helpTitle" data-i18n="helpTitle">Jak czytać ANTAVID</h1><div class="help-grid" id="helpGrid"></div>
+      <article class="methodology-box"><h2 data-i18n="trustTitle">Zasady wiarygodności</h2><ol><li data-i18n="trust1">Każda cena musi mieć źródło, czas i status świeżości.</li><li data-i18n="trust2">Wskaźniki muszą wynikać z pokazanej serii danych.</li><li data-i18n="trust3">Scenariusz musi mieć warunek aktywacji i unieważnienia.</li><li data-i18n="trust4">Prawdopodobieństwa wymagają testów poza próbą i kalibracji.</li></ol></article>
+    </section>
+  </main>
   <dialog id="tradeDialog">
     <form method="dialog" id="tradeForm">
-      <div class="dialog-head"><div><p class="eyebrow">Simulation only</p><h2 id="tradeTitle">Paper trade</h2></div><button value="cancel" class="icon-button" aria-label="Close">×</button></div>
-      <input type="hidden" id="tradeSymbol">
-      <label>Direction<select id="tradeSide"><option value="LONG">Long</option><option value="SHORT">Short</option></select></label>
-      <label>Capital allocation (USD)<input id="tradeAllocation" type="number" min="10" max="10000" step="10" value="100" required></label>
-      <label>Stop distance (%)<input id="tradeStop" type="number" min="0.1" max="25" step="0.1" value="2" required></label>
-      <label>Trading thesis<textarea id="tradeThesis" minlength="12" maxlength="500" required placeholder="What must happen, and what would prove this thesis wrong?"></textarea></label>
-      <p class="form-note">Simulation includes the configured spread and commission. Maximum planned risk is 2% of current equity.</p>
-      <div class="dialog-actions"><button value="cancel" class="secondary-button">Cancel</button><button id="confirmTrade" value="default" class="primary-button">Add paper trade</button></div>
-      <p class="form-error" id="formError" role="alert"></p>
+      <header class="dialog-header"><div><span class="kicker" data-i18n="simulation">TYLKO SYMULACJA</span><h2 id="tradeTitle">Paper trade</h2></div><button value="cancel" class="close-button" aria-label="Zamknij">×</button></header>
+      <input id="tradeSymbol" type="hidden"><div class="direction-switch" role="group" aria-label="Kierunek"><button type="button" data-side="LONG" class="on long">↗ LONG</button><button type="button" data-side="SHORT" class="short">↘ SHORT</button></div>
+      <label><span data-i18n="allocation">Wielkość pozycji (USD)</span><input id="tradeAllocation" type="number" min="10" max="10000" step="10" value="100" required></label>
+      <label><span data-i18n="stopDistance">Odległość stop loss (%)</span><input id="tradeStop" type="number" min="0.1" max="25" step="0.1" value="2" required></label>
+      <label><span data-i18n="thesis">Uzasadnienie transakcji</span><textarea id="tradeThesis" minlength="12" maxlength="500" required placeholder="Co musi się wydarzyć i co unieważni ten scenariusz?"></textarea></label>
+      <p class="risk-note" data-i18n="riskNote">Symulacja uwzględnia spread i prowizję. Maksymalne planowane ryzyko wynosi 2% bieżącego kapitału.</p><p id="formError" class="form-error" role="alert"></p>
+      <div class="dialog-actions"><button value="cancel" class="ghost-button" data-i18n="cancel">Anuluj</button><button id="confirmTrade" value="default" class="primary-button" data-i18n="addTrade">Dodaj transakcję</button></div>
     </form>
   </dialog>
-
-  <template id="marketCardTemplate">
-    <article class="market-card">
-      <div class="card-top"><div><span class="asset-type"></span><h3 class="asset-name"></h3><small class="asset-symbol"></small></div><span class="quality-badge"></span></div>
-      <div class="price-row"><strong class="asset-price"></strong><span class="asset-change"></span></div>
-      <svg class="sparkline" viewBox="0 0 300 84" role="img"><title>Historical demo price series</title><path class="spark-area"></path><path class="spark-path"></path></svg>
-      <dl class="facts"><div><dt>Horizon</dt><dd class="signal-horizon"></dd></div><div><dt>Evidence</dt><dd class="signal-evidence"></dd></div><div><dt>RSI(14)</dt><dd class="signal-rsi"></dd></div></dl>
-      <div class="signal-panel"><div><span>SCENARIO BIAS</span><strong class="signal-direction"></strong></div><p class="signal-summary"></p></div>
-      <div class="levels"><div><span>Trigger</span><strong class="signal-trigger"></strong></div><div><span>Invalidation</span><strong class="signal-invalidation"></strong></div></div>
-      <div class="drivers"></div>
-      <div class="card-footer"><small class="signal-id"></small><button class="trade-button" type="button">Open paper trade</button></div>
-    </article>
-  </template>
   <script type="module" src="src/app.js"></script>
 </body>
 </html>

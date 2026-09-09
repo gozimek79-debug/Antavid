@@ -1,7 +1,8 @@
 {
-  "name": "ANTAVID Market Intelligence",
+  "name": "ANTAVID — Inteligencja Rynkowa",
   "short_name": "ANTAVID",
-  "description": "Evidence-first market research preview and paper-trading journal.",
+  "description": "Dwujęzyczny terminal analizy rynkowej i dziennik transakcji demonstracyjnych.",
+  "lang": "pl",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#080c14",

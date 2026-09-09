@@ -2,161 +2,85 @@ import { DEMO_SNAPSHOT, validateSnapshot } from "./data.js";
 import { STARTING_CASH, createPaperTrade, markToMarket, percentChange, portfolioMetrics } from "./engine.js";
 
 const API_ENDPOINT = globalThis.ANTAVID_API_ENDPOINT || "";
-const STORE_KEY = "antavid-paper-journal-v1";
+const JOURNAL_KEY = "antavid-paper-journal-v1";
+const LANG_KEY = "antavid-language";
+const LEVEL_KEY = "antavid-experience";
+const ORDER = ["BRENT", "XAU-USD", "BTC-USD", "ZW"];
 let snapshot = DEMO_SNAPSHOT;
-let journal = loadJournal();
+let lang = localStorage.getItem(LANG_KEY) || "pl";
+let level = localStorage.getItem(LEVEL_KEY) || "amateur";
+let active = "BRENT";
+let tradeSide = "LONG";
 let selectedInstrument = null;
+let journal = loadJournal();
 
-const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
-const number = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+const T = {
+  pl: {
+    skip:"Przejdź do analizy rynku",demo:"DANE DEMO",preview:"WERSJA BADAWCZA",previewText:"notowania i scenariusze są deterministycznymi danymi demonstracyjnymi, a nie bieżącymi cenami ani poradą inwestycyjną.",searchLabel:"Szukaj instrumentu",search:"Szukaj instrumentu…",snapshot:"MIGAWKA DANYCH",riskPractice:"TRENING ZARZĄDZANIA RYZYKIEM",journal:"Dziennik transakcji",reset:"Wyczyść dziennik",cash:"Kapitał",openPnl:"Otwarty P&L",realizedPnl:"Zrealizowany P&L",openRisk:"Otwarte ryzyko",education:"EDUKACJA I METODOLOGIA",helpTitle:"Jak czytać ANTAVID",trustTitle:"Zasady wiarygodności",trust1:"Każda cena musi mieć źródło, czas i status świeżości.",trust2:"Wskaźniki muszą wynikać z pokazanej serii danych.",trust3:"Scenariusz musi mieć warunek aktywacji i unieważnienia.",trust4:"Prawdopodobieństwa wymagają testów poza próbą i kalibracji.",simulation:"TYLKO SYMULACJA",allocation:"Wielkość pozycji (USD)",stopDistance:"Odległość stop loss (%)",thesis:"Uzasadnienie transakcji",riskNote:"Symulacja uwzględnia spread i prowizję. Maksymalne planowane ryzyko wynosi 2% bieżącego kapitału.",cancel:"Anuluj",addTrade:"Dodaj transakcję",markets:{BRENT:"Ropa","XAU-USD":"Złoto","BTC-USD":"Krypto",ZW:"Żywność"},help:"Pomoc",bias:"SCENARIUSZ",bullish:"WZROSTOWY",bearish:"SPADKOWY",neutral:"NEUTRALNY",longSetup:"OBSERWUJ LONG",shortSetup:"OBSERWUJ SHORT",wait:"CZEKAJ",drivers:"KLUCZOWE CZYNNIKI",evidence:"SIŁA DOWODÓW",horizon:"Horyzont",trigger:"Warunek aktywacji",invalidation:"Unieważnienie",high:"MAKSIMUM SERII",low:"MINIMUM SERII",volatility:"ZMIENNOŚĆ",rsi:"RSI(14)",chart:"WYKRES CENY",older:"starsze dane",newer:"nowsze dane",articles:"KONTEKST ANALITYCZNY",paper:"TRANSAKCJA DEMO",simulateLong:"Symuluj LONG",simulateShort:"Symuluj SHORT",disclosure:"To nie jest porada finansowa. Scenariusz służy wyłącznie badaniu interfejsu i procesu decyzyjnego.",noResults:"Brak obsługiwanego instrumentu. ANTAVID nie tworzy sygnałów dla nieznanych symboli.",noTrades:"Brak transakcji demonstracyjnych. Otwórz rynek i zapisz sprawdzalną tezę.",close:"Zamknij pozycję",opened:"OTWARTA",closed:"ZAMKNIĘTA",confirmReset:"Usunąć cały dziennik transakcji demonstracyjnych?",amateur:"🌱 AMATOR",pro:"⚡ PRO",source:"Źródło",demoSource:"deterministyczna migawka demonstracyjna",helpCards:[["Bias rynkowy","Pokazuje kierunek scenariusza, a nie polecenie kupna lub sprzedaży."],["Warunek aktywacji","Poziom lub zdarzenie, które musi wystąpić, zanim scenariusz stanie się aktywny."],["Unieważnienie","Warunek wskazujący, że teza przestała obowiązywać."],["RSI(14)","Wskaźnik momentum. Samodzielnie nie potwierdza transakcji."],["Siła dowodów","Ocena kompletności przesłanek, nie prawdopodobieństwo zysku."],["Paper trading","Symulacja do ćwiczenia procesu bez używania prawdziwych pieniędzy."]]},
+  en: {
+    skip:"Skip to market analysis",demo:"DEMO DATA",preview:"RESEARCH PREVIEW",previewText:"quotes and scenarios are deterministic demo fixtures, not current prices or investment advice.",searchLabel:"Search instrument",search:"Search instrument…",snapshot:"DATA SNAPSHOT",riskPractice:"RISK MANAGEMENT PRACTICE",journal:"Trading journal",reset:"Reset journal",cash:"Equity",openPnl:"Open P&L",realizedPnl:"Realized P&L",openRisk:"Open risk",education:"EDUCATION & METHODOLOGY",helpTitle:"How to read ANTAVID",trustTitle:"Integrity principles",trust1:"Every price needs a source, timestamp and freshness status.",trust2:"Indicators must be derived from the displayed data series.",trust3:"Every scenario needs a trigger and invalidation.",trust4:"Probability claims require out-of-sample testing and calibration.",simulation:"SIMULATION ONLY",allocation:"Position size (USD)",stopDistance:"Stop distance (%)",thesis:"Trading thesis",riskNote:"Simulation includes spread and commission. Maximum planned risk is 2% of current equity.",cancel:"Cancel",addTrade:"Add trade",markets:{BRENT:"Oil","XAU-USD":"Gold","BTC-USD":"Crypto",ZW:"Food"},help:"Help",bias:"SCENARIO",bullish:"BULLISH",bearish:"BEARISH",neutral:"NEUTRAL",longSetup:"WATCH LONG",shortSetup:"WATCH SHORT",wait:"WAIT",drivers:"KEY MARKET DRIVERS",evidence:"EVIDENCE STRENGTH",horizon:"Horizon",trigger:"Trigger",invalidation:"Invalidation",high:"SERIES HIGH",low:"SERIES LOW",volatility:"VOLATILITY",rsi:"RSI(14)",chart:"PRICE CHART",older:"older",newer:"newer",articles:"ANALYTICAL CONTEXT",paper:"PAPER TRADE",simulateLong:"Simulate LONG",simulateShort:"Simulate SHORT",disclosure:"Not financial advice. This scenario exists only to test the interface and decision process.",noResults:"No supported instrument found. ANTAVID does not invent signals for unknown symbols.",noTrades:"No paper trades yet. Open a market and record a testable thesis.",close:"Close position",opened:"OPEN",closed:"CLOSED",confirmReset:"Delete the complete paper-trading journal?",amateur:"🌱 AMATEUR",pro:"⚡ PRO",source:"Source",demoSource:"deterministic demo snapshot",helpCards:[["Market bias","Shows scenario direction, not an instruction to buy or sell."],["Trigger","A level or event that must occur before the scenario becomes active."],["Invalidation","The condition showing that the thesis no longer holds."],["RSI(14)","A momentum indicator. It does not confirm a trade by itself."],["Evidence strength","Rates completeness of evidence, not probability of profit."],["Paper trading","A simulation for practising the process without real money."]]}
+};
 
-function loadJournal() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORE_KEY));
-    return parsed && Array.isArray(parsed.trades) ? parsed : { trades: [] };
-  } catch { return { trades: [] }; }
-}
-function saveJournal() { localStorage.setItem(STORE_KEY, JSON.stringify(journal)); }
-function formatPrice(item) { return item.currency === "USD" ? money.format(item.price) : `${number.format(item.price)} ¢`; }
-function escapeText(value) { return String(value ?? ""); }
+const $ = (selector) => document.querySelector(selector);
+const tx = (key) => T[lang][key] ?? key;
+const safe = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+const money = (value) => new Intl.NumberFormat(lang === "pl" ? "pl-PL" : "en-US", {style:"currency",currency:"USD",maximumFractionDigits:2}).format(value);
+const number = (value) => new Intl.NumberFormat(lang === "pl" ? "pl-PL" : "en-US", {maximumFractionDigits:2}).format(value);
 
-function linePath(values) {
-  const width = 300, height = 84, pad = 5, min = Math.min(...values), max = Math.max(...values), range = max - min || 1;
-  const points = values.map((value, index) => [pad + index * ((width - pad * 2) / (values.length - 1)), height - pad - ((value - min) / range) * (height - pad * 2)]);
-  const line = `M ${points.map(([x,y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(" L ")}`;
-  return { line, area: `${line} L ${points.at(-1)[0]} ${height} L ${points[0][0]} ${height} Z` };
-}
+function loadJournal(){try{const value=JSON.parse(localStorage.getItem(JOURNAL_KEY));return value&&Array.isArray(value.trades)?value:{trades:[]};}catch{return {trades:[]};}}
+function saveJournal(){localStorage.setItem(JOURNAL_KEY,JSON.stringify(journal));}
+function itemName(item){return lang === "pl" ? item.namePl || item.name : item.name;}
+function assetClass(item){return lang === "pl" ? item.assetClassPl || item.assetClass : item.assetClass;}
+function signalText(signal,key){return lang === "pl" ? signal[`${key}Pl`] || signal[key] : signal[key];}
+function direction(signal){return tx(signal.direction.toLowerCase());}
+function action(signal){return signal.direction === "BULLISH" ? tx("longSetup") : signal.direction === "BEARISH" ? tx("shortSetup") : tx("wait");}
+function formatPrice(item){return item.currency === "USD" ? money(item.price) : `${number(item.price)}¢`;}
+function volatility(item){const values=item.candles;const range=(Math.max(...values)-Math.min(...values))/item.price*100;return range>5?"HIGH":range>2?"MED":"LOW";}
+function pathFor(values){const width=760,height=180,pad=12,min=Math.min(...values),max=Math.max(...values),range=max-min||1;const pts=values.map((v,i)=>[pad+i*((width-pad*2)/(values.length-1)),height-pad-((v-min)/range)*(height-pad*2)]);const line=`M ${pts.map(([x,y])=>`${x.toFixed(1)} ${y.toFixed(1)}`).join(" L ")}`;return {line,area:`${line} L ${pts.at(-1)[0]} ${height} L ${pts[0][0]} ${height} Z`,last:pts.at(-1)};}
 
-function renderHeader() {
-  const generated = new Date(snapshot.generatedAt);
-  document.querySelector("#snapshotTime").textContent = generated.toLocaleString([], { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC";
-  document.querySelector("#snapshotSource").textContent = snapshot.source;
-  document.querySelector("#modeChip").textContent = `${snapshot.mode} DATA`;
-  const connection = document.querySelector("#connection");
-  connection.className = `connection ${snapshot.mode === "LIVE" ? "live" : "offline"}`;
-  connection.querySelector("span").textContent = snapshot.mode === "LIVE" ? "Verified feed" : "No live feed";
-  document.querySelector("#integrityBanner").innerHTML = snapshot.mode === "DEMO"
-    ? "<strong>Research preview.</strong> Demo scenarios are not current prices or trading recommendations."
-    : "<strong>Live analytical feed.</strong> Verify venue, timestamp and setup conditions before any decision.";
+function applyLanguage(){
+  document.documentElement.lang=lang;document.querySelectorAll("[data-i18n]").forEach((el)=>{el.textContent=tx(el.dataset.i18n);});
+  $("#languageButton").textContent=lang.toUpperCase();$("#marketSearch").placeholder=tx("search");$("#tradeThesis").placeholder=lang === "pl" ? "Co musi się wydarzyć i co unieważni ten scenariusz?" : "What must happen, and what would invalidate this scenario?";
+  $("#experienceButton").textContent=level === "amateur" ? tx("amateur") : tx("pro");renderAll();
 }
 
-function renderMarkets(filter = "") {
-  const grid = document.querySelector("#marketGrid");
-  grid.replaceChildren();
-  const query = filter.trim().toLowerCase();
-  const instruments = snapshot.instruments.filter((i) => `${i.symbol} ${i.name} ${i.assetClass}`.toLowerCase().includes(query));
-  for (const item of instruments) {
-    const card = document.querySelector("#marketCardTemplate").content.firstElementChild.cloneNode(true);
-    const change = percentChange(item.price, item.previousClose);
-    const paths = linePath(item.candles);
-    card.querySelector(".asset-type").textContent = item.assetClass;
-    card.querySelector(".asset-name").textContent = item.name;
-    card.querySelector(".asset-symbol").textContent = `${item.symbol} · ${item.currency}`;
-    card.querySelector(".asset-price").textContent = formatPrice(item);
-    const changeEl = card.querySelector(".asset-change");
-    changeEl.textContent = `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`;
-    changeEl.classList.add(change >= 0 ? "up" : "down");
-    const quality = card.querySelector(".quality-badge");
-    quality.textContent = snapshot.mode === "LIVE" ? "VERIFIED" : "DEMO";
-    quality.classList.add(snapshot.mode === "LIVE" ? "verified" : "demo");
-    card.querySelector(".spark-path").setAttribute("d", paths.line);
-    card.querySelector(".spark-area").setAttribute("d", paths.area);
-    card.querySelector(".signal-horizon").textContent = item.signal.horizon;
-    card.querySelector(".signal-evidence").textContent = `${item.signal.evidenceScore}/100`;
-    card.querySelector(".signal-rsi").textContent = number.format(item.rsi14);
-    const signal = card.querySelector(".signal-panel");
-    signal.classList.add(item.signal.direction.toLowerCase());
-    card.querySelector(".signal-direction").textContent = item.signal.direction;
-    card.querySelector(".signal-summary").textContent = item.signal.summary;
-    card.querySelector(".signal-trigger").textContent = item.signal.trigger;
-    card.querySelector(".signal-invalidation").textContent = item.signal.invalidation;
-    card.querySelector(".signal-id").textContent = item.signal.id;
-    const drivers = card.querySelector(".drivers");
-    for (const text of item.signal.drivers) { const tag = document.createElement("span"); tag.className = "driver"; tag.textContent = escapeText(text); drivers.append(tag); }
-    card.querySelector(".trade-button").addEventListener("click", () => openTrade(item));
-    grid.append(card);
-  }
-  if (!instruments.length) grid.innerHTML = '<div class="empty-state">No supported instrument matches this filter. ANTAVID does not invent a signal for unknown symbols.</div>';
+function orderedInstruments(){return ORDER.map((symbol)=>snapshot.instruments.find((item)=>item.symbol===symbol)).filter(Boolean);}
+function renderTicker(){const items=orderedInstruments().map((item)=>{const ch=percentChange(item.price,item.previousClose);return `<div class="ticker-item"><b>${safe(item.symbol)}</b>${safe(formatPrice(item))} <span class="${ch>=0?"up":"down"}">${ch>=0?"▲ +":"▼ "}${Math.abs(ch).toFixed(2)}%</span></div>`;}).join("");$("#tickerTrack").innerHTML=items+items;}
+function renderTabs(){
+  const tabs=orderedInstruments().map((item)=>`<button class="market-tab ${active===item.symbol?"active":""}" data-view="${safe(item.symbol)}"><span>${safe(item.icon)}</span><strong>${safe(tx("markets")[item.symbol])}</strong><small>${safe(direction(item.signal))}</small></button>`);
+  tabs.push(`<button class="market-tab ${active==="journal"?"active":""}" data-view="journal"><span>📒</span><strong>${safe(tx("journal"))}</strong><small>${journal.trades.length}</small></button>`,`<button class="market-tab ${active==="help"?"active":""}" data-view="help"><span>❓</span><strong>${safe(tx("help"))}</strong><small>i</small></button>`);
+  $("#marketTabs").innerHTML=tabs.join("");document.querySelectorAll(".market-tab").forEach((button)=>button.addEventListener("click",()=>switchView(button.dataset.view)));
+}
+function renderMarket(item){
+  const signal=item.signal,ch=percentChange(item.price,item.previousClose),series=pathFor(item.candles),drivers=lang==="pl"?signal.driversPl||signal.drivers:signal.drivers,articles=lang==="pl"?signal.articlesPl||signal.articles:signal.articles;
+  const high=Math.max(...item.candles),low=Math.min(...item.candles),biasClass=signal.direction.toLowerCase();
+  $("#marketView").innerHTML=`
+    <article class="signal-card"><div class="signal-top"><div><div class="market-id">${safe(item.icon)} ${safe(itemName(item).toUpperCase())} · ${safe(item.symbol)} · ${safe(assetClass(item))}</div><h1 class="market-name">${safe(itemName(item))}</h1><div class="price">${safe(formatPrice(item))}</div><div class="change ${ch>=0?"up":"down"}">${ch>=0?"▲ +":"▼ "}${Math.abs(ch).toFixed(2)}%</div></div><div class="bias-block"><div class="bias ${biasClass}">${safe(direction(signal))}</div><div class="bias-label">${safe(tx("bias"))} · ${safe(signal.horizon)}</div><div class="action-label ${biasClass}">${safe(action(signal))}</div></div></div><div class="drivers-title">▸ ${safe(tx("drivers"))}</div><div class="drivers">${drivers.map((driver,i)=>`<div class="driver"><b>0${i+1}</b><span>${safe(driver)}</span></div>`).join("")}</div></article>
+    <div class="scenario-grid"><article class="content-card"><div class="evidence-head"><div><span class="kicker">${safe(tx("evidence"))}</span><h2>${safe(direction(signal))} · ${safe(signal.horizon)}</h2></div><div class="evidence-score">${safe(signal.evidenceScore)}<small>/100</small></div></div><div class="evidence-track"><i style="width:${Number(signal.evidenceScore)}%"></i></div><p class="scenario-copy">${safe(signalText(signal,"summary"))}</p><p class="amateur-only scenario-copy"><strong>${safe(tx("source"))}:</strong> ${safe(snapshot.mode === "DEMO" ? tx("demoSource") : snapshot.source)}</p></article><article class="content-card"><div class="levels"><div class="level"><span>${safe(tx("trigger"))}</span><strong>${safe(signalText(signal,"trigger"))}</strong></div><div class="level"><span>${safe(tx("invalidation"))}</span><strong>${safe(signalText(signal,"invalidation"))}</strong></div></div></article></div>
+    <div class="stats-grid"><article class="stat"><span>${safe(tx("high"))}</span><strong>${safe(item.currency==="USD"?money(high):`${number(high)}¢`)}</strong></article><article class="stat"><span>${safe(tx("low"))}</span><strong>${safe(item.currency==="USD"?money(low):`${number(low)}¢`)}</strong></article><article class="stat"><span>${safe(tx("volatility"))}</span><strong>${volatility(item)}</strong></article><article class="stat"><span>${safe(tx("rsi"))}</span><strong>${safe(number(item.rsi14))}</strong></article></div>
+    <article class="chart-card"><div class="chart-head"><h2>▸ ${safe(tx("chart"))} · ${safe(item.symbol)}</h2><span>${safe(tx("older"))} ← → ${safe(tx("newer"))}</span></div><svg class="price-chart" viewBox="0 0 760 180" preserveAspectRatio="none" role="img" aria-label="${safe(tx("chart"))}"><defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f8ef7" stop-opacity=".28"/><stop offset="1" stop-color="#4f8ef7" stop-opacity="0"/></linearGradient></defs><line class="chart-grid" x1="0" y1="45" x2="760" y2="45"/><line class="chart-grid" x1="0" y1="90" x2="760" y2="90"/><line class="chart-grid" x1="0" y1="135" x2="760" y2="135"/><path class="chart-area" d="${series.area}"/><path class="chart-line" d="${series.line}"/><circle class="chart-last" cx="${series.last[0]}" cy="${series.last[1]}" r="4"/></svg><div class="rsi-row"><div class="rsi-track"><i style="left:${Math.max(0,Math.min(100,item.rsi14))}%"></i></div><strong>RSI ${safe(number(item.rsi14))}</strong></div></article>
+    <div class="market-bottom"><article class="content-card"><div class="section-label">▸ ${safe(tx("articles"))}</div><div class="article-list">${articles.map((article)=>`<div class="article"><strong>${safe(article)}</strong><span>${safe(snapshot.mode)} · ${safe(item.symbol)}</span></div>`).join("")}</div></article><article class="content-card"><div class="section-label">▸ ${safe(tx("paper"))}</div><div class="trade-actions"><button class="long-button" data-trade="LONG">↗ ${safe(tx("simulateLong"))}</button><button class="short-button" data-trade="SHORT">↘ ${safe(tx("simulateShort"))}</button></div><p class="disclosure">⚠ ${safe(tx("disclosure"))}</p></article></div>`;
+  document.querySelectorAll("[data-trade]").forEach((button)=>button.addEventListener("click",()=>openTrade(item,button.dataset.trade)));
 }
 
-function openTrade(item) {
-  selectedInstrument = item;
-  document.querySelector("#tradeTitle").textContent = `Paper trade · ${item.symbol}`;
-  document.querySelector("#tradeSymbol").value = item.symbol;
-  document.querySelector("#formError").textContent = "";
-  document.querySelector("#tradeDialog").showModal();
+function switchView(view){active=view;$("#marketView").classList.toggle("active",!['journal','help'].includes(view));$("#journalView").classList.toggle("active",view==='journal');$("#helpView").classList.toggle("active",view==='help');renderTabs();if(view==='journal')renderJournal();else if(view==='help')renderHelp();else{const item=snapshot.instruments.find((entry)=>entry.symbol===view);if(item)renderMarket(item);}}
+function renderHelp(){$("#helpGrid").innerHTML=tx("helpCards").map(([title,copy])=>`<article class="help-card"><h2>${safe(title)}</h2><p>${safe(copy)}</p></article>`).join("");}
+function renderJournal(){
+  const metrics=portfolioMetrics(journal,snapshot.instruments);$("#cashValue").textContent=money(STARTING_CASH+metrics.realizedPnl);$("#openPnl").textContent=money(metrics.openPnl);$("#realizedPnl").textContent=money(metrics.realizedPnl);$("#openRisk").textContent=`${(metrics.openRisk/Math.max(metrics.equity,1)*100).toFixed(2)}%`;
+  const list=$("#journalList");list.replaceChildren();if(!journal.trades.length){list.innerHTML=`<div class="empty">${safe(tx("noTrades"))}</div>`;return;}
+  for(const trade of journal.trades){const instrument=snapshot.instruments.find((item)=>item.symbol===trade.symbol);const result=trade.status==="OPEN"&&instrument?markToMarket(trade,instrument.price):{pnl:trade.realizedPnl};const entry=document.createElement("article");entry.className="journal-entry";const body=document.createElement("div");const title=document.createElement("h3");title.textContent=`${trade.side} · ${trade.symbol} · ${trade.status==="OPEN"?tx("opened"):tx("closed")}`;const copy=document.createElement("p");copy.textContent=trade.thesis;const meta=document.createElement("small");meta.textContent=`${money(trade.allocation)} · P&L ${money(result.pnl)} · ${new Date(trade.openedAt).toLocaleString(lang==="pl"?"pl-PL":"en-US")}`;body.append(title,copy,meta);entry.append(body);if(trade.status==="OPEN"){const button=document.createElement("button");button.className="ghost-button";button.textContent=tx("close");button.addEventListener("click",()=>closeTrade(trade.id));entry.append(button);}list.append(entry);}
 }
+function openTrade(item,side){selectedInstrument=item;tradeSide=side;$("#tradeTitle").textContent=`${side} · ${item.symbol}`;$("#tradeSymbol").value=item.symbol;$("#formError").textContent="";document.querySelectorAll("[data-side]").forEach((button)=>button.classList.toggle("on",button.dataset.side===side));$("#tradeDialog").showModal();}
+function submitTrade(event){event.preventDefault();if(event.submitter?.value==="cancel"){$("#tradeDialog").close();return;}try{const equity=portfolioMetrics(journal,snapshot.instruments).equity;const trade=createPaperTrade({instrument:selectedInstrument,side:tradeSide,allocation:$("#tradeAllocation").value,stopPercent:$("#tradeStop").value,thesis:$("#tradeThesis").value,equity});journal.trades.unshift(trade);saveJournal();$("#tradeDialog").close();event.target.reset();switchView("journal");}catch(error){$("#formError").textContent=error.message;}}
+function closeTrade(id){const trade=journal.trades.find((item)=>item.id===id);const instrument=snapshot.instruments.find((item)=>item.symbol===trade?.symbol);if(!trade||!instrument||trade.status!=="OPEN")return;const result=markToMarket(trade,instrument.price);Object.assign(trade,{status:"CLOSED",exit:result.exit,realizedPnl:result.pnl,closedAt:new Date().toISOString()});saveJournal();renderJournal();}
+function filterMarket(query){const q=query.trim().toLowerCase();if(!q){switchView(active==='journal'||active==='help'?"BRENT":active);return;}const item=orderedInstruments().find((entry)=>`${entry.symbol} ${entry.name} ${entry.namePl} ${entry.assetClass} ${entry.assetClassPl}`.toLowerCase().includes(q));if(item)switchView(item.symbol);else $("#marketView").innerHTML=`<div class="empty">${safe(tx("noResults"))}</div>`;}
+function renderAll(){document.body.classList.toggle("pro",level==="pro");renderTicker();renderTabs();$("#snapshotTime").textContent=new Date(snapshot.generatedAt).toLocaleString(lang==="pl"?"pl-PL":"en-US",{dateStyle:"short",timeStyle:"short",timeZone:"UTC"})+" UTC";switchView(active);}
+async function loadData(){if(!API_ENDPOINT)return;try{const response=await fetch(API_ENDPOINT,{signal:AbortSignal.timeout(10000)});if(!response.ok)throw new Error();const incoming=await response.json();if(!validateSnapshot(incoming))throw new Error();snapshot=incoming;renderAll();}catch{snapshot=DEMO_SNAPSHOT;renderAll();}}
 
-function submitTrade(event) {
-  event.preventDefault();
-  if (event.submitter?.value === "cancel") { document.querySelector("#tradeDialog").close(); return; }
-  const metrics = portfolioMetrics(journal, snapshot.instruments);
-  try {
-    const trade = createPaperTrade({
-      instrument: selectedInstrument, side: document.querySelector("#tradeSide").value,
-      allocation: document.querySelector("#tradeAllocation").value, stopPercent: document.querySelector("#tradeStop").value,
-      thesis: document.querySelector("#tradeThesis").value, equity: metrics.equity
-    });
-    journal.trades.unshift(trade); saveJournal(); document.querySelector("#tradeDialog").close();
-    switchView("journal"); renderJournal(); event.target.reset();
-  } catch (error) { document.querySelector("#formError").textContent = error.message; }
-}
-
-function closeTrade(id) {
-  const trade = journal.trades.find((item) => item.id === id);
-  const instrument = snapshot.instruments.find((item) => item.symbol === trade?.symbol);
-  if (!trade || !instrument || trade.status !== "OPEN") return;
-  const result = markToMarket(trade, instrument.price);
-  Object.assign(trade, { status: "CLOSED", exit: result.exit, realizedPnl: result.pnl, closedAt: new Date().toISOString() });
-  saveJournal(); renderJournal();
-}
-
-function renderJournal() {
-  const metrics = portfolioMetrics(journal, snapshot.instruments);
-  document.querySelector("#cashValue").textContent = money.format(STARTING_CASH + metrics.realizedPnl);
-  document.querySelector("#openPnl").textContent = money.format(metrics.openPnl);
-  document.querySelector("#realizedPnl").textContent = money.format(metrics.realizedPnl);
-  document.querySelector("#openRisk").textContent = `${(metrics.openRisk / Math.max(metrics.equity, 1) * 100).toFixed(2)}%`;
-  const list = document.querySelector("#journalList"); list.replaceChildren();
-  if (!journal.trades.length) { list.innerHTML = '<div class="empty-state">No paper trades yet. Open a market scenario and record a testable thesis.</div>'; return; }
-  for (const trade of journal.trades) {
-    const instrument = snapshot.instruments.find((i) => i.symbol === trade.symbol);
-    const result = trade.status === "OPEN" && instrument ? markToMarket(trade, instrument.price) : { pnl: trade.realizedPnl };
-    const entry = document.createElement("article"); entry.className = "journal-entry";
-    const body = document.createElement("div");
-    const title = document.createElement("h3"); title.textContent = `${trade.side} · ${trade.symbol} · ${trade.status}`;
-    const thesis = document.createElement("p"); thesis.textContent = trade.thesis;
-    const meta = document.createElement("div"); meta.className = "journal-meta"; meta.textContent = `Allocation ${money.format(trade.allocation)} · planned risk ${money.format(trade.plannedRisk)} · P&L ${money.format(result.pnl)}`;
-    body.append(title, thesis, meta); entry.append(body);
-    if (trade.status === "OPEN") { const button = document.createElement("button"); button.className = "secondary-button"; button.textContent = "Close at demo price"; button.addEventListener("click", () => closeTrade(trade.id)); entry.append(button); }
-    list.append(entry);
-  }
-}
-
-function switchView(view) {
-  document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
-  document.querySelectorAll(".view").forEach((section) => section.classList.toggle("active", section.id === `${view}View`));
-}
-
-async function refreshData() {
-  const button = document.querySelector("#refreshButton"); button.disabled = true; button.textContent = "Checking…";
-  if (API_ENDPOINT) {
-    try {
-      const response = await fetch(API_ENDPOINT, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(10_000) });
-      const candidate = await response.json();
-      if (!response.ok || !validateSnapshot(candidate)) throw new Error("Invalid market snapshot");
-      snapshot = candidate;
-    } catch { snapshot = DEMO_SNAPSHOT; }
-  }
-  renderHeader(); renderMarkets(document.querySelector("#marketSearch").value); renderJournal();
-  button.disabled = false; button.textContent = API_ENDPOINT ? "Refresh data" : "Demo data loaded";
-}
-
-document.querySelectorAll(".nav-button").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
-document.querySelector("#marketSearch").addEventListener("input", (event) => renderMarkets(event.target.value));
-document.querySelector("#refreshButton").addEventListener("click", refreshData);
-document.querySelector("#tradeForm").addEventListener("submit", submitTrade);
-document.querySelector("#resetJournal").addEventListener("click", () => { if (confirm("Reset the complete paper journal?")) { journal = { trades: [] }; saveJournal(); renderJournal(); } });
-
-if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("./sw.js").catch(() => {});
-renderHeader(); renderMarkets(); renderJournal();
+$("#languageButton").addEventListener("click",()=>{lang=lang==="pl"?"en":"pl";localStorage.setItem(LANG_KEY,lang);applyLanguage();});
+$("#experienceButton").addEventListener("click",()=>{level=level==="amateur"?"pro":"amateur";localStorage.setItem(LEVEL_KEY,level);applyLanguage();});
+$("#marketSearch").addEventListener("input",(event)=>filterMarket(event.target.value));$("#clearSearch").addEventListener("click",()=>{$("#marketSearch").value="";switchView(active==='journal'||active==='help'?"BRENT":active);});
+document.querySelectorAll("[data-side]").forEach((button)=>button.addEventListener("click",()=>{tradeSide=button.dataset.side;document.querySelectorAll("[data-side]").forEach((entry)=>entry.classList.toggle("on",entry===button));}));
+$("#tradeForm").addEventListener("submit",submitTrade);$("#resetJournal").addEventListener("click",()=>{if(confirm(tx("confirmReset"))){journal={trades:[]};saveJournal();renderJournal();renderTabs();}});
+if("serviceWorker" in navigator&&location.protocol!=="file:")navigator.serviceWorker.register("./sw.js").catch(()=>{});
+applyLanguage();loadData();
