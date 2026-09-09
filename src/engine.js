@@ -29,21 +29,22 @@ export function createPaperTrade({
   if (!Number.isFinite(target) || target < 0.2 || target > 100) throw new Error("Target distance must be between 0.2% and 100%.");
   if (typeof thesis !== "string" || thesis.trim().length < 12) throw new Error("Trading thesis must contain at least 12 characters.");
   if (!Number.isFinite(equity) || equity <= 0) throw new Error("Portfolio equity is invalid.");
-  const plannedRisk = amount * stop / 100;
-  if (existingOpenRisk + plannedRisk > equity * MAX_RISK_FRACTION + 1e-8) throw new Error("Total planned loss exceeds 2% of portfolio equity.");
   const halfSpread = (instrument.spreadBps || 0) / 20_000;
   const entry = instrument.price * (side === "LONG" ? 1 + halfSpread : 1 - halfSpread);
   const quantity = amount / entry;
   const stopPrice = entry * (side === "LONG" ? 1 - stop / 100 : 1 + stop / 100);
   const targetPrice = entry * (side === "LONG" ? 1 + target / 100 : 1 - target / 100);
-  return {
+  const draft = {
     id: globalThis.crypto?.randomUUID?.() || `paper-${now.getTime()}`,
     symbol: instrument.symbol, name: instrument.name, side, allocation: amount, quantity,
     entry, stopPercent: stop, targetPercent: target, stopPrice, targetPrice,
-    plannedRisk, riskReward: target / stop, thesis: thesis.trim(),
     spreadBps: instrument.spreadBps || 0, commissionBps: instrument.commissionBps || 0,
     openedAt: now.toISOString(), status: "OPEN"
   };
+  const plannedRisk = Math.abs(Math.min(0, markToMarket(draft, stopPrice).pnl));
+  const plannedReward = Math.max(0, markToMarket(draft, targetPrice).pnl);
+  if (existingOpenRisk + plannedRisk > equity * MAX_RISK_FRACTION + 1e-8) throw new Error("Total planned loss exceeds 2% of portfolio equity.");
+  return {...draft, plannedRisk, plannedReward, riskReward:plannedRisk ? plannedReward / plannedRisk : 0, thesis:thesis.trim()};
 }
 
 export function markToMarket(trade, marketPrice) {

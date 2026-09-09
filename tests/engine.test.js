@@ -13,11 +13,11 @@ function trade(overrides = {}) {
 }
 
 test("percent change is deterministic", () => assert.equal(percentChange(110,100),10));
-test("trade reserves a stop, target and 2:1 reward/risk", () => {
+test("trade reserves a stop, target and net reward/risk after costs", () => {
   const value=trade();
   assert.ok(value.stopPrice<value.entry);
   assert.ok(value.targetPrice>value.entry);
-  assert.equal(value.riskReward,2);
+  assert.ok(value.riskReward>1.6 && value.riskReward<2);
 });
 test("single trade rejects risk above two percent of equity", () => {
   assert.throws(()=>trade({allocation:5000,stopPercent:5}),/exceeds 2%/);
@@ -60,7 +60,7 @@ test("portfolio reports reserved cash, aggregate risk, win rate and average R", 
   const metrics=portfolioMetrics({trades:[open,closed]},[instrument]);
   assert.equal(metrics.reservedCapital,1000);
   assert.ok(metrics.availableCash>9000);
-  assert.equal(metrics.openRisk,20);
+  assert.equal(metrics.openRisk,open.plannedRisk);
   assert.equal(metrics.winRate,100);
   assert.ok(metrics.averageR>0);
 });

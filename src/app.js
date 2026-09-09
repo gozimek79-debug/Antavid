@@ -257,9 +257,10 @@ function renderJournal(){
 function updateOrderPreview(){
   if(!selectedInstrument)return;
   const amount=Number($("#tradeAllocation").value),stop=Number($("#tradeStop").value),target=Number($("#tradeTarget").value);
-  const metrics=portfolioMetrics(journal,snapshot.instruments),risk=amount*stop/100,allowance=Math.max(0,metrics.equity*.02-metrics.openRisk);
-  const entry=selectedInstrument.price,stopPrice=entry*(tradeSide==="LONG"?1-stop/100:1+stop/100),targetPrice=entry*(tradeSide==="LONG"?1+target/100:1-target/100);
-  $("#orderPreview").innerHTML=`<strong>${safe(tx("orderPreview"))}</strong><div><span>${safe(tx("entry"))}<b>${safe(formatPrice(selectedInstrument,entry))}</b></span><span>${safe(tx("stopLoss"))}<b>${safe(formatPrice(selectedInstrument,stopPrice))}</b></span><span>${safe(tx("target"))}<b>${safe(formatPrice(selectedInstrument,targetPrice))}</b></span><span>${safe(tx("rr"))}<b>${Number.isFinite(target/stop)?number(target/stop):"—"}:1</b></span><span>${safe(tx("openRisk"))}<b>${money(Number.isFinite(risk)?risk:0)}</b></span><span>${safe(tx("remainingRisk"))}<b>${money(allowance)}</b></span></div>`;
+  const metrics=portfolioMetrics(journal,snapshot.instruments),allowance=Math.max(0,metrics.equity*.02-metrics.openRisk);
+  let plan={entry:selectedInstrument.price,stopPrice:selectedInstrument.price,targetPrice:selectedInstrument.price,plannedRisk:0,riskReward:0};
+  try{plan=createPaperTrade({instrument:selectedInstrument,side:tradeSide,allocation:amount,stopPercent:stop,targetPercent:target,thesis:"Order preview calculation",equity:1e12,availableCash:1e12});}catch{}
+  $("#orderPreview").innerHTML=`<strong>${safe(tx("orderPreview"))}</strong><div><span>${safe(tx("entry"))}<b>${safe(formatPrice(selectedInstrument,plan.entry))}</b></span><span>${safe(tx("stopLoss"))}<b>${safe(formatPrice(selectedInstrument,plan.stopPrice))}</b></span><span>${safe(tx("target"))}<b>${safe(formatPrice(selectedInstrument,plan.targetPrice))}</b></span><span>${safe(tx("rr"))}<b>${number(plan.riskReward)}:1</b></span><span>${safe(tx("openRisk"))}<b>${money(plan.plannedRisk)}</b></span><span>${safe(tx("remainingRisk"))}<b>${money(allowance)}</b></span></div>`;
 }
 function openTrade(item,side){
   selectedInstrument=item;tradeSide=side;$("#tradeTitle").textContent=`${side} · ${item.symbol}`;$("#tradeSymbol").value=item.symbol;$("#formError").textContent="";
