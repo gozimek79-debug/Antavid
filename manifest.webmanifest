@@ -1,0 +1,9 @@
+{
+  "name": "ANTAVID Market Intelligence",
+  "short_name": "ANTAVID",
+  "description": "Evidence-first market research preview and paper-trading journal.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#080c14",
+  "theme_color": "#080c14"
+}

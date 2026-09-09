@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080c14">
+  <meta name="description" content="ANTAVID research preview: evidence-first market intelligence and paper trading.">
+  <title>ANTAVID — Market Intelligence</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to market overview</a>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#overview" aria-label="ANTAVID home">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <span><strong>ANTAVID</strong><small>MARKET INTELLIGENCE</small></span>
+      </a>
+      <div class="status-cluster">
+        <span class="mode-chip" id="modeChip">DEMO DATA</span>
+        <span class="connection" id="connection"><i></i><span>Checking</span></span>
+      </div>
+    </header>
+
+    <div class="integrity-banner" id="integrityBanner" role="status">
+      <strong>Research preview.</strong> Demo scenarios are not current prices or trading recommendations.
+    </div>
+
+    <main id="main">
+      <section class="hero" id="overview">
+        <div>
+          <p class="eyebrow">Evidence-first workspace</p>
+          <h1>Market context without false certainty.</h1>
+          <p class="hero-copy">Verified inputs, explicit horizons and auditable signal records. When evidence is missing, ANTAVID says so.</p>
+        </div>
+        <div class="freshness-card">
+          <span>DATA SNAPSHOT</span>
+          <strong id="snapshotTime">—</strong>
+          <small id="snapshotSource">—</small>
+          <button id="refreshButton" type="button">Refresh data</button>
+        </div>
+      </section>
+
+      <nav class="primary-nav" aria-label="Application sections">
+        <button class="nav-button active" data-view="markets" type="button">Markets</button>
+        <button class="nav-button" data-view="journal" type="button">Paper journal</button>
+        <button class="nav-button" data-view="methodology" type="button">Methodology</button>
+      </nav>
+
+      <section class="view active" id="marketsView" aria-labelledby="marketsHeading">
+        <div class="section-heading">
+          <div><p class="eyebrow">Monitored universe</p><h2 id="marketsHeading">Market scenarios</h2></div>
+          <label class="search"><span class="sr-only">Filter instruments</span><input id="marketSearch" type="search" placeholder="Filter by symbol or market"></label>
+        </div>
+        <div class="market-grid" id="marketGrid" aria-live="polite"></div>
+      </section>
+
+      <section class="view" id="journalView" aria-labelledby="journalHeading">
+        <div class="section-heading">
+          <div><p class="eyebrow">Risk practice</p><h2 id="journalHeading">Paper trading journal</h2></div>
+          <button class="secondary-button" id="resetJournal" type="button">Reset journal</button>
+        </div>
+        <div class="portfolio-strip">
+          <div><span>Cash</span><strong id="cashValue">$10,000.00</strong></div>
+          <div><span>Open P&amp;L</span><strong id="openPnl">$0.00</strong></div>
+          <div><span>Realized P&amp;L</span><strong id="realizedPnl">$0.00</strong></div>
+          <div><span>Open risk</span><strong id="openRisk">0.00%</strong></div>
+        </div>
+        <div class="journal-list" id="journalList"></div>
+      </section>
+
+      <section class="view" id="methodologyView" aria-labelledby="methodologyHeading">
+        <div class="section-heading"><div><p class="eyebrow">Auditability</p><h2 id="methodologyHeading">How ANTAVID must earn trust</h2></div></div>
+        <div class="method-grid">
+          <article><b>1</b><h3>Verified inputs</h3><p>Every price, candle and event carries its source, timestamp, unit and freshness status.</p></article>
+          <article><b>2</b><h3>Deterministic features</h3><p>Indicators are computed from the displayed market series. No random or invented history.</p></article>
+          <article><b>3</b><h3>Frozen signals</h3><p>Each signal records its horizon, trigger, invalidation, model version and complete input snapshot.</p></article>
+          <article><b>4</b><h3>Out-of-sample proof</h3><p>Probability language is allowed only after walk-forward testing, cost modelling and calibration.</p></article>
+        </div>
+        <div class="disclosure">
+          <h3>Important disclosure</h3>
+          <p>ANTAVID is an analytical research preview. It does not provide personalized investment advice and does not execute orders. Demo scenarios exist only to test the interface and paper-trading workflow.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="tradeDialog">
+    <form method="dialog" id="tradeForm">
+      <div class="dialog-head"><div><p class="eyebrow">Simulation only</p><h2 id="tradeTitle">Paper trade</h2></div><button value="cancel" class="icon-button" aria-label="Close">×</button></div>
+      <input type="hidden" id="tradeSymbol">
+      <label>Direction<select id="tradeSide"><option value="LONG">Long</option><option value="SHORT">Short</option></select></label>
+      <label>Capital allocation (USD)<input id="tradeAllocation" type="number" min="10" max="10000" step="10" value="100" required></label>
+      <label>Stop distance (%)<input id="tradeStop" type="number" min="0.1" max="25" step="0.1" value="2" required></label>
+      <label>Trading thesis<textarea id="tradeThesis" minlength="12" maxlength="500" required placeholder="What must happen, and what would prove this thesis wrong?"></textarea></label>
+      <p class="form-note">Simulation includes the configured spread and commission. Maximum planned risk is 2% of current equity.</p>
+      <div class="dialog-actions"><button value="cancel" class="secondary-button">Cancel</button><button id="confirmTrade" value="default" class="primary-button">Add paper trade</button></div>
+      <p class="form-error" id="formError" role="alert"></p>
+    </form>
+  </dialog>
+
+  <template id="marketCardTemplate">
+    <article class="market-card">
+      <div class="card-top"><div><span class="asset-type"></span><h3 class="asset-name"></h3><small class="asset-symbol"></small></div><span class="quality-badge"></span></div>
+      <div class="price-row"><strong class="asset-price"></strong><span class="asset-change"></span></div>
+      <svg class="sparkline" viewBox="0 0 300 84" role="img"><title>Historical demo price series</title><path class="spark-area"></path><path class="spark-path"></path></svg>
+      <dl class="facts"><div><dt>Horizon</dt><dd class="signal-horizon"></dd></div><div><dt>Evidence</dt><dd class="signal-evidence"></dd></div><div><dt>RSI(14)</dt><dd class="signal-rsi"></dd></div></dl>
+      <div class="signal-panel"><div><span>SCENARIO BIAS</span><strong class="signal-direction"></strong></div><p class="signal-summary"></p></div>
+      <div class="levels"><div><span>Trigger</span><strong class="signal-trigger"></strong></div><div><span>Invalidation</span><strong class="signal-invalidation"></strong></div></div>
+      <div class="drivers"></div>
+      <div class="card-footer"><small class="signal-id"></small><button class="trade-button" type="button">Open paper trade</button></div>
+    </article>
+  </template>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
