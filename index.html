@@ -17,7 +17,7 @@
       <div><strong>ANTAVID</strong><small>MARKET INTELLIGENCE</small></div>
     </div>
     <div class="header-actions">
-      <button id="experienceButton" class="experience" type="button">🌱 AMATOR</button>
+      <button id="experienceButton" class="experience" type="button" aria-pressed="false">🌱 AMATOR</button>
       <button id="languageButton" class="language" type="button" aria-label="Zmień język">PL</button>
       <span class="data-state"><i></i><span data-i18n="demo">DANE DEMO</span></span>
     </div>
@@ -32,16 +32,19 @@
       <div class="snapshot"><span data-i18n="snapshot">MIGAWKA DANYCH</span><strong id="snapshotTime">—</strong></div>
     </section>
     <nav class="market-tabs" id="marketTabs" aria-label="Rynki"></nav>
+    <div id="modeNotice" class="mode-notice" role="status"></div>
     <section id="marketView" class="view active" aria-live="polite"></section>
     <section id="journalView" class="view" aria-labelledby="journalTitle">
       <div class="section-title-row"><div><span class="kicker" data-i18n="riskPractice">TRENING ZARZĄDZANIA RYZYKIEM</span><h1 id="journalTitle" data-i18n="journal">Dziennik transakcji</h1></div><button id="resetJournal" class="ghost-button" type="button" data-i18n="reset">Wyczyść dziennik</button></div>
       <div class="portfolio-strip">
-        <article><span data-i18n="cash">Kapitał</span><strong id="cashValue">$10,000.00</strong></article><article><span data-i18n="openPnl">Otwarty P&amp;L</span><strong id="openPnl">$0.00</strong></article><article><span data-i18n="realizedPnl">Zrealizowany P&amp;L</span><strong id="realizedPnl">$0.00</strong></article><article><span data-i18n="openRisk">Otwarte ryzyko</span><strong id="openRisk">0.00%</strong></article>
+        <article><span data-i18n="equity">Wartość portfela</span><strong id="equityValue">$10,000.00</strong></article><article><span data-i18n="cash">Dostępne środki</span><strong id="cashValue">$10,000.00</strong></article><article><span data-i18n="reserved">Zaangażowany kapitał</span><strong id="reservedValue">$0.00</strong></article><article><span data-i18n="openRisk">Otwarte ryzyko</span><strong id="openRisk">0.00%</strong></article><article><span data-i18n="openPnl">Otwarty P&amp;L</span><strong id="openPnl">$0.00</strong></article><article><span data-i18n="realizedPnl">Zrealizowany P&amp;L</span><strong id="realizedPnl">$0.00</strong></article><article><span data-i18n="winRate">Skuteczność</span><strong id="winRate">—</strong></article><article><span data-i18n="averageR">Średni wynik R</span><strong id="averageR">—</strong></article>
       </div>
+      <div class="journal-tools"><button id="exportJournal" class="ghost-button" type="button" data-i18n="export">Eksportuj CSV</button></div>
       <div id="journalList" class="journal-list"></div>
     </section>
     <section id="helpView" class="view" aria-labelledby="helpTitle">
       <span class="kicker" data-i18n="education">EDUKACJA I METODOLOGIA</span><h1 id="helpTitle" data-i18n="helpTitle">Jak czytać ANTAVID</h1><div class="help-grid" id="helpGrid"></div>
+      <section class="glossary-section"><div class="section-title-row"><div><span class="kicker" data-i18n="glossaryKicker">SŁOWNIK TRADERA</span><h2 data-i18n="glossary">Najważniejsze pojęcia</h2></div><input id="glossarySearch" type="search" data-i18n-placeholder="glossarySearch" placeholder="Szukaj pojęcia…"></div><div id="glossaryList" class="glossary-list"></div></section>
       <article class="methodology-box"><h2 data-i18n="trustTitle">Zasady wiarygodności</h2><ol><li data-i18n="trust1">Każda cena musi mieć źródło, czas i status świeżości.</li><li data-i18n="trust2">Wskaźniki muszą wynikać z pokazanej serii danych.</li><li data-i18n="trust3">Scenariusz musi mieć warunek aktywacji i unieważnienia.</li><li data-i18n="trust4">Prawdopodobieństwa wymagają testów poza próbą i kalibracji.</li></ol></article>
     </section>
   </main>
@@ -51,6 +54,8 @@
       <input id="tradeSymbol" type="hidden"><div class="direction-switch" role="group" aria-label="Kierunek"><button type="button" data-side="LONG" class="on long">↗ LONG</button><button type="button" data-side="SHORT" class="short">↘ SHORT</button></div>
       <label><span data-i18n="allocation">Wielkość pozycji (USD)</span><input id="tradeAllocation" type="number" min="10" max="10000" step="10" value="100" required></label>
       <label><span data-i18n="stopDistance">Odległość stop loss (%)</span><input id="tradeStop" type="number" min="0.1" max="25" step="0.1" value="2" required></label>
+      <label><span data-i18n="targetDistance">Cel zysku (%)</span><input id="tradeTarget" type="number" min="0.2" max="100" step="0.1" value="4" required></label>
+      <div id="orderPreview" class="order-preview"></div>
       <label><span data-i18n="thesis">Uzasadnienie transakcji</span><textarea id="tradeThesis" minlength="12" maxlength="500" required placeholder="Co musi się wydarzyć i co unieważni ten scenariusz?"></textarea></label>
       <p class="risk-note" data-i18n="riskNote">Symulacja uwzględnia spread i prowizję. Maksymalne planowane ryzyko wynosi 2% bieżącego kapitału.</p><p id="formError" class="form-error" role="alert"></p>
       <div class="dialog-actions"><button value="cancel" class="ghost-button" data-i18n="cancel">Anuluj</button><button id="confirmTrade" value="default" class="primary-button" data-i18n="addTrade">Dodaj transakcję</button></div>

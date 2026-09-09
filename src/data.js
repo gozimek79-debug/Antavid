@@ -3,7 +3,7 @@ export const DEMO_SNAPSHOT = {
   mode: "DEMO",
   generatedAt: "2026-09-08T20:00:00.000Z",
   source: "ANTAVID deterministic interface fixture",
-  methodologyVersion: "research-preview-0.20",
+  methodologyVersion: "research-preview-0.22",
   instruments: [
     {
       symbol: "BTC-USD", name: "Bitcoin", namePl: "Bitcoin", assetClass: "Crypto spot", assetClassPl: "Rynek kryptowalut", icon: "₿", currency: "USD",

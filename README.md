@@ -1,10 +1,20 @@
-# ANTAVID v0.21
+# ANTAVID v0.22
 
 ANTAVID is an evidence-first market-intelligence research preview with a persistent paper-trading journal.
 
 ## Interface direction
 
-Version 0.21 restores the identity and navigation model of the original v19 prototype: compact market terminal, scrolling ticker, dedicated Oil/Gold/Crypto/Food tabs, detailed signal panels, charts, RSI, analytical context, paper trading, journal and educational help. Polish is the default language and the PL/EN control switches the complete interface. Amateur/Pro mode is retained as a presentation preference.
+Version 0.22 restores the identity and navigation model of the original v19 prototype: compact market terminal, scrolling ticker, dedicated Oil/Gold/Crypto/Food tabs, detailed signal panels, candlestick timeframes, RSI, signal history, analytical context, paper trading, journal and educational help. Polish is the default language and the PL/EN control switches the complete interface. Amateur and Pro are now genuinely different workspaces rather than a cosmetic preference.
+
+## v0.22 iteration
+
+- Paper trading reserves position capital and applies a portfolio-wide 2% open-risk limit.
+- Every new trade stores entry, stop-loss, profit target and reward-to-risk ratio.
+- Stop-loss and profit-target exits are evaluated automatically whenever a new market snapshot is loaded.
+- Journal analytics include available cash, reserved capital, win rate, average R and CSV export.
+- Amateur mode adds a plain-language decision sequence and chart guidance.
+- Pro mode adds execution costs, methodology identifiers and deterministic signal history.
+- Restored original concepts include OHLC candles, 1D/1W/1M views and a searchable trader glossary.
 
 ## Current status
 

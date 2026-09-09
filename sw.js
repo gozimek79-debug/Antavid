@@ -1,4 +1,4 @@
-const CACHE = "antavid-v0.21";
+const CACHE = "antavid-v0.22";
 const ASSETS = ["./", "./index.html", "./styles.css", "./src/app.js", "./src/data.js", "./src/engine.js", "./manifest.webmanifest"];
 self.addEventListener("install", (event) => event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS))));
 self.addEventListener("activate", (event) => event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))));
